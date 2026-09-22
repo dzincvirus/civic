@@ -538,7 +538,8 @@ export default function App() {
               <MapContainer
                 center={defaultCenter}
                 zoom={13}
-                style={{ height: "100%", width: "100%", position: "relative" }}
+                zoomControl={false}
+                style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
