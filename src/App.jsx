@@ -1,5 +1,5 @@
 // src/App.jsx
-import "leaflet/dist/leaflet.css";
+import "./index.css";
 import React, { useState, useEffect } from "react";
 import {
   MapContainer,
@@ -10,8 +10,8 @@ import {
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
-import { supabase } from "./supabaseClient";
 import "leaflet/dist/leaflet.css";
+import { supabase } from "./supabaseClient";
 import IssuesList from "./Issueslist";
 
 // High-DPI SVG Pin Creator for status pins
@@ -31,12 +31,12 @@ const createCustomIcon = (color) => {
 };
 
 const statusColors = {
-  unresolved: "#ef4444", // Crimson Red
-  in_progress: "#f59e0b", // Warm Amber
-  resolved: "#10b981", // Emerald Green
+  unresolved: "#ef4444",
+  in_progress: "#f59e0b",
+  resolved: "#10b981",
 };
 
-// Component to register clicks on the map for dropping new pins
+// Component to register clicks on the map
 function MapClickHandler({ onSelectLocation }) {
   useMapEvents({
     click(e) {
@@ -45,7 +45,8 @@ function MapClickHandler({ onSelectLocation }) {
   });
   return null;
 }
-// --- Paste LocateControl function right here ---
+
+// Locate User Control Component
 function LocateControl({ onSelectLocation }) {
   const map = useMap();
 
@@ -60,10 +61,8 @@ function LocateControl({ onSelectLocation }) {
         const { latitude, longitude } = position.coords;
         const latlng = { lat: latitude, lng: longitude };
 
-        // Fly to user location
         map.flyTo([latitude, longitude], 15, { animate: true });
 
-        // Set selected coordinates
         if (onSelectLocation) {
           onSelectLocation(latlng);
         }
@@ -82,28 +81,30 @@ function LocateControl({ onSelectLocation }) {
       title="Use My Location"
       style={{
         position: "absolute",
-        bottom: "20px",
+        bottom: "16px",
         right: "12px",
         zIndex: 1000,
         backgroundColor: "#1e293b",
         color: "#3b82f6",
-        border: "1px solid rgba(255, 255, 255, 0.15)",
-        borderRadius: "10px",
-        padding: "10px 14px",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        borderRadius: "24px",
+        padding: "10px 16px",
         cursor: "pointer",
         fontWeight: "600",
         fontSize: "0.85rem",
         display: "flex",
         alignItems: "center",
         gap: "6px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.5)",
         backdropFilter: "blur(8px)",
+        WebkitTapHighlightColor: "transparent",
       }}
     >
       🎯 Use My Location
     </button>
   );
 }
+
 export default function App() {
   const [issues, setIssues] = useState([]);
   const [session, setSession] = useState(null);
@@ -113,6 +114,10 @@ export default function App() {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Mobile View Switcher: 'map' or 'form'
+  const [activeTab, setActiveTab] = useState("map");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Admin Modal States
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -124,7 +129,11 @@ export default function App() {
   const defaultCenter = [25.5788, 91.8933];
 
   useEffect(() => {
-    // 1. Fetch initial auth session & subscribe to auth changes
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
@@ -135,7 +144,6 @@ export default function App() {
       setSession(session);
     });
 
-    // 2. Fetch initial reports
     const loadIssues = async () => {
       const { data, error } = await supabase
         .from("issues")
@@ -146,7 +154,6 @@ export default function App() {
     };
     loadIssues();
 
-    // 3. Realtime listener for new live reports AND status updates
     const channel = supabase
       .channel("public:issues")
       .on(
@@ -173,12 +180,12 @@ export default function App() {
       .subscribe();
 
     return () => {
+      window.removeEventListener("resize", handleResize);
       authSubscription.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, []);
 
-  // Handle image selection and update object URL preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -187,7 +194,6 @@ export default function App() {
     }
   };
 
-  // Clear selected file and revoke local preview object URL
   const handleRemoveFile = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -196,7 +202,6 @@ export default function App() {
     setPreviewUrl(null);
   };
 
-  // Admin Modal Login Handler
   const handleAdminLoginSubmit = async (e) => {
     e.preventDefault();
     setAuthError("");
@@ -228,13 +233,13 @@ export default function App() {
     await supabase.auth.signOut();
   };
 
-  // Form Submission with Image Upload
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCoords || !title)
-      return alert(
-        "Please click a spot on the map to pin the report location!",
-      );
+    if (!selectedCoords || !title) {
+      alert("Please select a location on the map first!");
+      if (isMobile) setActiveTab("map");
+      return;
+    }
 
     setSubmitting(true);
     let imageUrl = null;
@@ -278,11 +283,11 @@ export default function App() {
         setIssues((prev) => [insertedData[0], ...prev]);
       }
 
-      // Reset form states
       setTitle("");
       handleRemoveFile();
       setSelectedCoords(null);
       alert("Report submitted successfully!");
+      if (isMobile) setActiveTab("map");
     } catch (err) {
       console.error("Submission failed:", err.message);
       alert(`Submission failed: ${err.message}`);
@@ -301,7 +306,7 @@ export default function App() {
         color: "#f1f5f9",
         fontFamily:
           "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        paddingBottom: "60px",
+        paddingBottom: "80px",
       }}
     >
       {/* Top Navbar */}
@@ -311,26 +316,26 @@ export default function App() {
           top: 0,
           zIndex: 100,
           backdropFilter: "blur(12px)",
-          backgroundColor: "rgba(15, 23, 42, 0.85)",
+          backgroundColor: "rgba(15, 23, 42, 0.9)",
           borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          padding: "16px 28px",
+          padding: isMobile ? "12px 16px" : "16px 28px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.4)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
             style={{
-              width: "40px",
-              height: "40px",
+              width: isMobile ? "36px" : "40px",
+              height: isMobile ? "36px" : "40px",
               borderRadius: "10px",
               background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "1.2rem",
+              fontSize: isMobile ? "1rem" : "1.2rem",
               boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)",
             }}
           >
@@ -340,7 +345,7 @@ export default function App() {
             <h1
               style={{
                 margin: 0,
-                fontSize: "1.25rem",
+                fontSize: isMobile ? "1.1rem" : "1.25rem",
                 fontWeight: 800,
                 letterSpacing: "-0.02em",
                 background: "linear-gradient(to right, #ffffff, #94a3b8)",
@@ -350,46 +355,46 @@ export default function App() {
             >
               CivicPulse
             </h1>
-            <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>
-              Community Incident Tracker
-            </p>
+            {!isMobile && (
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>
+                Community Incident Tracker
+              </p>
+            )}
           </div>
         </div>
 
         <div>
           {session ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.75rem",
                   fontWeight: 600,
                   color: isAdmin ? "#10b981" : "#94a3b8",
                   backgroundColor: isAdmin
                     ? "rgba(16, 185, 129, 0.12)"
                     : "rgba(255, 255, 255, 0.05)",
-                  padding: "6px 14px",
+                  padding: "6px 10px",
                   borderRadius: "20px",
                   border: isAdmin
                     ? "1px solid rgba(16, 185, 129, 0.3)"
                     : "1px solid rgba(255, 255, 255, 0.1)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
                 }}
               >
-                {isAdmin ? "👑 Admin Dashboard" : `👤 ${session.user.email}`}
+                {isAdmin ? "👑 Admin" : "👤 User"}
               </span>
               <button
                 onClick={handleLogout}
                 style={{
-                  padding: "8px 16px",
-                  fontSize: "0.8rem",
+                  padding: "6px 12px",
+                  fontSize: "0.75rem",
                   fontWeight: 600,
                   cursor: "pointer",
                   borderRadius: "8px",
                   border: "1px solid rgba(255, 255, 255, 0.15)",
                   backgroundColor: "rgba(255, 255, 255, 0.05)",
                   color: "#e2e8f0",
+                  minHeight: "36px",
                 }}
               >
                 Sign Out
@@ -402,8 +407,8 @@ export default function App() {
                 setIsLoginOpen(true);
               }}
               style={{
-                padding: "9px 18px",
-                fontSize: "0.85rem",
+                padding: "8px 14px",
+                fontSize: "0.8rem",
                 fontWeight: 600,
                 cursor: "pointer",
                 borderRadius: "8px",
@@ -411,6 +416,7 @@ export default function App() {
                 background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                 color: "#ffffff",
                 boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
+                minHeight: "36px",
               }}
             >
               Admin Access
@@ -419,504 +425,567 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Mobile-Friendly Toggle Tabs */}
+      {isMobile && (
+        <div
+          style={{
+            display: "flex",
+            margin: "16px 16px 0 16px",
+            padding: "4px",
+            backgroundColor: "#0f172a",
+            borderRadius: "12px",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setActiveTab("map")}
+            style={{
+              flex: 1,
+              padding: "10px",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              borderRadius: "8px",
+              border: "none",
+              backgroundColor: activeTab === "map" ? "#1e293b" : "transparent",
+              color: activeTab === "map" ? "#60a5fa" : "#64748b",
+              transition: "all 0.2s ease",
+            }}
+          >
+            📍 Live Map
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("form")}
+            style={{
+              flex: 1,
+              padding: "10px",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              borderRadius: "8px",
+              border: "none",
+              backgroundColor: activeTab === "form" ? "#1e293b" : "transparent",
+              color: activeTab === "form" ? "#60a5fa" : "#64748b",
+              transition: "all 0.2s ease",
+            }}
+          >
+            📝 Report Issue {selectedCoords ? "•" : ""}
+          </button>
+        </div>
+      )}
+
+      {/* Main Container */}
       <main
         style={{
           maxWidth: "1180px",
-          margin: "32px auto 0 auto",
-          padding: "0 20px",
+          margin: isMobile ? "16px auto 0 auto" : "32px auto 0 auto",
+          padding: isMobile ? "0 12px" : "0 20px",
         }}
       >
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-            gap: "24px",
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "20px",
             alignItems: "start",
           }}
         >
           {/* Left Panel: Map */}
-          <div
-            style={{
-              backgroundColor: "#0f172a",
-              borderRadius: "16px",
-              padding: "20px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-            }}
-          >
+          {(!isMobile || activeTab === "map") && (
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px",
+                backgroundColor: "#0f172a",
+                borderRadius: "16px",
+                padding: isMobile ? "14px" : "20px",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  justifyContent: "space-between",
+                  alignItems: isMobile ? "flex-start" : "center",
+                  gap: "10px",
+                  marginBottom: "14px",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: "1rem",
+                    fontWeight: 700,
+                    color: "#f8fafc",
+                  }}
+                >
+                  📍 Realtime Live Map
+                </h3>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "#ef4444",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: "#ef4444",
+                      }}
+                    ></span>{" "}
+                    Unresolved
+                  </span>
+                  <span
+                    style={{
+                      color: "#f59e0b",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: "#f59e0b",
+                      }}
+                    ></span>{" "}
+                    In Progress
+                  </span>
+                  <span
+                    style={{
+                      color: "#10b981",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        backgroundColor: "#10b981",
+                      }}
+                    ></span>{" "}
+                    Resolved
+                  </span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  height: isMobile ? "380px" : "480px",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  position: "relative",
+                }}
+              >
+                <MapContainer
+                  center={defaultCenter}
+                  zoom={13}
+                  zoomControl={false}
+                  scrollWheelZoom={true}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+
+                  <MapClickHandler onSelectLocation={setSelectedCoords} />
+                  <LocateControl onSelectLocation={setSelectedCoords} />
+
+                  {issues.map((issue) => (
+                    <Marker
+                      key={issue.id}
+                      position={[issue.latitude, issue.longitude]}
+                      icon={createCustomIcon(
+                        statusColors[issue.status] || "#ef4444",
+                      )}
+                    >
+                      <Popup>
+                        <div style={{ maxWidth: "200px", padding: "4px" }}>
+                          <h4
+                            style={{
+                              margin: "0 0 6px 0",
+                              color: "#0f172a",
+                              fontSize: "0.95rem",
+                            }}
+                          >
+                            {issue.title}
+                          </h4>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#475569",
+                              marginBottom: "8px",
+                            }}
+                          >
+                            <div>
+                              <strong>Category:</strong> {issue.category}
+                            </div>
+                            <div>
+                              <strong>Status:</strong> {issue.status}
+                            </div>
+                          </div>
+                          {issue.image_url && (
+                            <img
+                              src={issue.image_url}
+                              alt={issue.title}
+                              style={{
+                                width: "100%",
+                                height: "110px",
+                                objectFit: "cover",
+                                borderRadius: "6px",
+                              }}
+                            />
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+
+                  {selectedCoords && (
+                    <Marker
+                      position={selectedCoords}
+                      icon={createCustomIcon("#3b82f6")}
+                    >
+                      <Popup>Selected Pin Location</Popup>
+                    </Marker>
+                  )}
+                </MapContainer>
+              </div>
+
+              {isMobile && selectedCoords && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("form")}
+                  style={{
+                    width: "100%",
+                    marginTop: "12px",
+                    padding: "12px",
+                    borderRadius: "10px",
+                    border: "none",
+                    backgroundColor: "#2563eb",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  Continue with Selected Location ➔
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Right Panel: Incident Form */}
+          {(!isMobile || activeTab === "form") && (
+            <div
+              style={{
+                backgroundColor: "#0f172a",
+                borderRadius: "16px",
+                padding: isMobile ? "18px" : "24px",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
               }}
             >
               <h3
                 style={{
-                  margin: 0,
-                  fontSize: "1rem",
+                  margin: "0 0 4px 0",
+                  fontSize: "1.1rem",
                   fontWeight: 700,
                   color: "#f8fafc",
                 }}
               >
-                📍 Realtime Live Map
+                📝 Submit Incident Report
               </h3>
-              <div
+              <p
                 style={{
-                  display: "flex",
-                  gap: "12px",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
+                  margin: "0 0 16px 0",
+                  fontSize: "0.8rem",
+                  color: "#94a3b8",
                 }}
               >
-                <span
-                  style={{
-                    color: "#ef4444",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor: "#ef4444",
-                    }}
-                  ></span>{" "}
-                  Unresolved
-                </span>
-                <span
-                  style={{
-                    color: "#f59e0b",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor: "#f59e0b",
-                    }}
-                  ></span>{" "}
-                  In Progress
-                </span>
-                <span
-                  style={{
-                    color: "#10b981",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor: "#10b981",
-                    }}
-                  ></span>{" "}
-                  Resolved
-                </span>
-              </div>
-            </div>
+                Pin a spot on the map and attach details below.
+              </p>
 
-            <div
-              style={{
-                height: "480px",
-                borderRadius: "12px",
-                overflow: "hidden",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-              }}
-            >
-              <MapContainer
-                center={defaultCenter}
-                zoom={13}
-                zoomControl={false}
-                scrollWheelZoom={
-                  false
-                } /* Prevents accidental zooming while scrolling */
-                style={{ height: "100%", width: "100%" }}
+              <form
+                onSubmit={handleSubmit}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "16px",
+                }}
               >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-
-                <MapClickHandler onSelectLocation={setSelectedCoords} />
-
-                {/* PASTE IT RIGHT HERE */}
-                <LocateControl onSelectLocation={setSelectedCoords} />
-
-                {/* Issue Pin Markers */}
-                {issues.map((issue) => (
-                  <Marker
-                    key={issue.id}
-                    position={[issue.latitude, issue.longitude]}
-                    icon={createCustomIcon(
-                      statusColors[issue.status] || "#ef4444",
-                    )}
-                  >
-                    <Popup>
-                      <div style={{ maxWidth: "200px", padding: "4px" }}>
-                        <h4
-                          style={{
-                            margin: "0 0 6px 0",
-                            color: "#0f172a",
-                            fontSize: "0.95rem",
-                          }}
-                        >
-                          {issue.title}
-                        </h4>
-                        <div
-                          style={{
-                            fontSize: "0.75rem",
-                            color: "#475569",
-                            marginBottom: "8px",
-                          }}
-                        >
-                          <div>
-                            <strong>Category:</strong> {issue.category}
-                          </div>
-                          <div>
-                            <strong>Status:</strong> {issue.status}
-                          </div>
-                        </div>
-                        {issue.image_url && (
-                          <img
-                            src={issue.image_url}
-                            alt={issue.title}
-                            style={{
-                              width: "100%",
-                              height: "110px",
-                              objectFit: "cover",
-                              borderRadius: "6px",
-                            }}
-                          />
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-
-                {/* Dynamic Location Picker Marker */}
-                {selectedCoords && (
-                  <Marker
-                    position={selectedCoords}
-                    icon={createCustomIcon("#3b82f6")}
-                  >
-                    <Popup>Selected Pin Location</Popup>
-                  </Marker>
-                )}
-              </MapContainer>
-            </div>
-          </div>
-
-          {/* Right Panel: Incident Form */}
-          <div
-            style={{
-              backgroundColor: "#0f172a",
-              borderRadius: "16px",
-              padding: "24px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-            }}
-          >
-            <h3
-              style={{
-                margin: "0 0 6px 0",
-                fontSize: "1.1rem",
-                fontWeight: 700,
-                color: "#f8fafc",
-              }}
-            >
-              📝 Submit Incident Report
-            </h3>
-            <p
-              style={{
-                margin: "0 0 20px 0",
-                fontSize: "0.8rem",
-                color: "#94a3b8",
-              }}
-            >
-              Help city officials locate and fix infrastructure issues.
-            </p>
-
-            <form
-              onSubmit={handleSubmit}
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-            >
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    textTransform: "uppercase",
-                    marginBottom: "6px",
-                  }}
-                >
-                  1. Pin Location
-                </label>
-                <div
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "8px",
-                    backgroundColor: selectedCoords
-                      ? "rgba(59, 130, 246, 0.1)"
-                      : "rgba(255, 255, 255, 0.03)",
-                    border: selectedCoords
-                      ? "1px solid #3b82f6"
-                      : "1px dashed rgba(255, 255, 255, 0.15)",
-                    fontSize: "0.85rem",
-                    color: selectedCoords ? "#60a5fa" : "#64748b",
-                    textAlign: "center",
-                  }}
-                >
-                  {selectedCoords
-                    ? `📍 Coordinates: ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`
-                    : "Tap anywhere on the map to place a pin"}
-                </div>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    textTransform: "uppercase",
-                    marginBottom: "6px",
-                  }}
-                >
-                  2. Category
-                </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    color: "#f8fafc",
-                    fontSize: "0.875rem",
-                    outline: "none",
-                  }}
-                >
-                  <option value="Garbage">Garbage / Unlawful Dumping</option>
-                  <option value="Pothole">Pothole / Road Damage</option>
-                  <option value="Lighting">Broken Streetlight</option>
-                  <option value="Other">Other Community Issue</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    textTransform: "uppercase",
-                    marginBottom: "6px",
-                  }}
-                >
-                  3. Description
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Overflowing dumpsters near main street"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                    color: "#f8fafc",
-                    fontSize: "0.875rem",
-                    outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              {/* Modernized Photo Attachment Field with Interactive Preview */}
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    textTransform: "uppercase",
-                    marginBottom: "6px",
-                  }}
-                >
-                  4. Photo Attachment
-                </label>
-
-                {!previewUrl ? (
+                <div>
                   <label
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "20px 16px",
-                      borderRadius: "10px",
-                      backgroundColor: "#1e293b",
-                      border: "2px dashed rgba(255, 255, 255, 0.15)",
-                      cursor: "pointer",
-                      transition:
-                        "border-color 0.2s ease, background-color 0.2s ease",
+                      display: "block",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "#94a3b8",
+                      textTransform: "uppercase",
+                      marginBottom: "6px",
                     }}
                   >
-                    <div
+                    1. Pin Location
+                  </label>
+                  <div
+                    onClick={() => isMobile && setActiveTab("map")}
+                    style={{
+                      padding: "12px",
+                      borderRadius: "10px",
+                      backgroundColor: selectedCoords
+                        ? "rgba(59, 130, 246, 0.12)"
+                        : "rgba(255, 255, 255, 0.03)",
+                      border: selectedCoords
+                        ? "1px solid #3b82f6"
+                        : "1px dashed rgba(255, 255, 255, 0.18)",
+                      fontSize: "0.85rem",
+                      color: selectedCoords ? "#60a5fa" : "#94a3b8",
+                      textAlign: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {selectedCoords
+                      ? `📍 ${selectedCoords.lat.toFixed(4)}, ${selectedCoords.lng.toFixed(4)}`
+                      : "Tap here to choose location on map"}
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "#94a3b8",
+                      textTransform: "uppercase",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    2. Category
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "10px",
+                      backgroundColor: "#1e293b",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      color: "#f8fafc",
+                      fontSize: "0.9rem",
+                      outline: "none",
+                      minHeight: "44px",
+                    }}
+                  >
+                    <option value="Garbage">Garbage / Unlawful Dumping</option>
+                    <option value="Pothole">Pothole / Road Damage</option>
+                    <option value="Lighting">Broken Streetlight</option>
+                    <option value="Other">Other Community Issue</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "#94a3b8",
+                      textTransform: "uppercase",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    3. Description
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Overflowing dumpsters near main street"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "10px",
+                      backgroundColor: "#1e293b",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      color: "#f8fafc",
+                      fontSize: "0.9rem",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      minHeight: "44px",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "#94a3b8",
+                      textTransform: "uppercase",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    4. Photo Attachment
+                  </label>
+
+                  {!previewUrl ? (
+                    <label
                       style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "50%",
-                        backgroundColor: "rgba(59, 130, 246, 0.15)",
-                        color: "#60a5fa",
                         display: "flex",
+                        flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
-                        marginBottom: "8px",
-                        fontSize: "1.1rem",
-                      }}
-                    >
-                      📷
-                    </div>
-                    <span
-                      style={{
-                        fontSize: "0.85rem",
-                        fontWeight: 600,
-                        color: "#e2e8f0",
-                      }}
-                    >
-                      Upload Photo Evidence
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#64748b",
-                        marginTop: "2px",
-                      }}
-                    >
-                      PNG, JPG, or WEBP (Max 5MB)
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      style={{ display: "none" }}
-                    />
-                  </label>
-                ) : (
-                  <div
-                    style={{
-                      position: "relative",
-                      borderRadius: "10px",
-                      overflow: "hidden",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      backgroundColor: "#1e293b",
-                      padding: "8px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                  >
-                    <img
-                      src={previewUrl}
-                      alt="Upload Preview"
-                      style={{
-                        width: "64px",
-                        height: "64px",
-                        objectFit: "cover",
-                        borderRadius: "6px",
-                        border: "1px solid rgba(255, 255, 255, 0.1)",
-                      }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: "0.825rem",
-                          fontWeight: 600,
-                          color: "#f8fafc",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {file?.name}
-                      </p>
-                      <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                        {(file?.size / (1024 * 1024)).toFixed(2)} MB
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveFile}
-                      style={{
-                        padding: "6px 10px",
-                        borderRadius: "6px",
-                        border: "none",
-                        backgroundColor: "rgba(239, 68, 68, 0.15)",
-                        color: "#fca5a5",
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
+                        padding: "18px 14px",
+                        borderRadius: "10px",
+                        backgroundColor: "#1e293b",
+                        border: "2px dashed rgba(255, 255, 255, 0.15)",
                         cursor: "pointer",
                       }}
                     >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
+                      <div
+                        style={{
+                          width: "38px",
+                          height: "38px",
+                          borderRadius: "50%",
+                          backgroundColor: "rgba(59, 130, 246, 0.15)",
+                          color: "#60a5fa",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: "6px",
+                          fontSize: "1.1rem",
+                        }}
+                      >
+                        📷
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "0.85rem",
+                          fontWeight: 600,
+                          color: "#e2e8f0",
+                        }}
+                      >
+                        Upload Photo Evidence
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+                  ) : (
+                    <div
+                      style={{
+                        position: "relative",
+                        borderRadius: "10px",
+                        overflow: "hidden",
+                        border: "1px solid rgba(255, 255, 255, 0.15)",
+                        backgroundColor: "#1e293b",
+                        padding: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                      }}
+                    >
+                      <img
+                        src={previewUrl}
+                        alt="Upload Preview"
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          objectFit: "cover",
+                          borderRadius: "6px",
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: "0.825rem",
+                            fontWeight: 600,
+                            color: "#f8fafc",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {file?.name}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        style={{
+                          padding: "8px 12px",
+                          borderRadius: "6px",
+                          border: "none",
+                          backgroundColor: "rgba(239, 68, 68, 0.15)",
+                          color: "#fca5a5",
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                style={{
-                  marginTop: "8px",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background:
-                    "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  color: "#ffffff",
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                  cursor: submitting ? "not-allowed" : "pointer",
-                  boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
-                  opacity: submitting ? 0.7 : 1,
-                  transition: "all 0.2s ease",
-                }}
-              >
-                {submitting
-                  ? "Uploading & Publishing..."
-                  : "Submit Incident Report"}
-              </button>
-            </form>
-          </div>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{
+                    marginTop: "6px",
+                    padding: "14px",
+                    borderRadius: "10px",
+                    border: "none",
+                    background:
+                      "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    fontSize: "0.95rem",
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)",
+                    opacity: submitting ? 0.7 : 1,
+                    minHeight: "48px",
+                  }}
+                >
+                  {submitting ? "Publishing..." : "Submit Incident Report"}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
-        {/* Community Feed / Admin Management Section */}
-        <section style={{ marginTop: "40px" }}>
+        {/* Community Feed / Admin Section */}
+        <section style={{ marginTop: isMobile ? "24px" : "40px" }}>
           <IssuesList issues={issues} setIssues={setIssues} session={session} />
         </section>
       </main>
@@ -930,10 +999,10 @@ export default function App() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(10, 15, 26, 0.75)",
+            backgroundColor: "rgba(10, 15, 26, 0.8)",
             backdropFilter: "blur(8px)",
             display: "flex",
-            alignItems: "center",
+            alignItems: isMobile ? "flex-end" : "center",
             justifyContent: "center",
             zIndex: 1000,
           }}
@@ -943,41 +1012,25 @@ export default function App() {
             onClick={(e) => e.stopPropagation()}
             style={{
               backgroundColor: "#0f172a",
-              borderRadius: "16px",
-              width: "90%",
-              maxWidth: "380px",
-              padding: "32px 28px",
+              borderRadius: isMobile ? "20px 20px 0 0" : "16px",
+              width: "100%",
+              maxWidth: isMobile ? "100%" : "380px",
+              padding: isMobile ? "24px 20px 36px 20px" : "32px 28px",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
               border: "1px solid rgba(255, 255, 255, 0.1)",
             }}
           >
-            <div style={{ textAlign: "center", marginBottom: "24px" }}>
-              <div
-                style={{
-                  width: "50px",
-                  height: "50px",
-                  borderRadius: "12px",
-                  backgroundColor: "rgba(59, 130, 246, 0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.5rem",
-                  margin: "0 auto 12px auto",
-                  border: "1px solid rgba(59, 130, 246, 0.3)",
-                }}
-              >
-                🔒
-              </div>
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
               <h3
                 style={{
                   margin: "0 0 4px 0",
                   color: "#f8fafc",
-                  fontSize: "1.2rem",
+                  fontSize: "1.15rem",
                 }}
               >
-                Admin Authentication
+                Admin Access
               </h3>
-              <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.825rem" }}>
+              <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.8rem" }}>
                 Sign in to manage reported civic issues
               </p>
             </div>
@@ -988,10 +1041,10 @@ export default function App() {
                   backgroundColor: "rgba(239, 68, 68, 0.15)",
                   border: "1px solid rgba(239, 68, 68, 0.3)",
                   color: "#fca5a5",
-                  padding: "10px 12px",
+                  padding: "10px",
                   borderRadius: "8px",
                   fontSize: "0.8rem",
-                  marginBottom: "16px",
+                  marginBottom: "14px",
                   textAlign: "center",
                 }}
               >
@@ -1001,7 +1054,7 @@ export default function App() {
 
             <form
               onSubmit={handleAdminLoginSubmit}
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+              style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
               <div>
                 <label
@@ -1010,26 +1063,25 @@ export default function App() {
                     fontSize: "0.75rem",
                     fontWeight: 700,
                     color: "#94a3b8",
-                    textTransform: "uppercase",
                     marginBottom: "6px",
                   }}
                 >
-                  Email Address
+                  Email
                 </label>
                 <input
                   type="email"
                   required
-                  placeholder="admin@example.com"
+                  placeholder="admin@civicpulse.org"
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "10px 12px",
+                    padding: "12px",
                     borderRadius: "8px",
                     backgroundColor: "#1e293b",
                     border: "1px solid rgba(255, 255, 255, 0.12)",
                     color: "#f8fafc",
-                    fontSize: "0.875rem",
+                    fontSize: "0.9rem",
                     outline: "none",
                     boxSizing: "border-box",
                   }}
@@ -1043,7 +1095,6 @@ export default function App() {
                     fontSize: "0.75rem",
                     fontWeight: 700,
                     color: "#94a3b8",
-                    textTransform: "uppercase",
                     marginBottom: "6px",
                   }}
                 >
@@ -1057,32 +1108,32 @@ export default function App() {
                   onChange={(e) => setAdminPassword(e.target.value)}
                   style={{
                     width: "100%",
-                    padding: "10px 12px",
+                    padding: "12px",
                     borderRadius: "8px",
                     backgroundColor: "#1e293b",
                     border: "1px solid rgba(255, 255, 255, 0.12)",
                     color: "#f8fafc",
-                    fontSize: "0.875rem",
+                    fontSize: "0.9rem",
                     outline: "none",
                     boxSizing: "border-box",
                   }}
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
                 <button
                   type="button"
                   onClick={() => setIsLoginOpen(false)}
                   style={{
                     flex: 1,
-                    padding: "10px",
+                    padding: "12px",
                     borderRadius: "8px",
                     border: "1px solid rgba(255, 255, 255, 0.15)",
                     backgroundColor: "transparent",
                     color: "#94a3b8",
                     fontWeight: 600,
-                    fontSize: "0.85rem",
                     cursor: "pointer",
+                    fontSize: "0.85rem",
                   }}
                 >
                   Cancel
@@ -1092,19 +1143,18 @@ export default function App() {
                   disabled={authenticating}
                   style={{
                     flex: 1,
-                    padding: "10px",
+                    padding: "12px",
                     borderRadius: "8px",
                     border: "none",
                     background:
                       "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                     color: "#ffffff",
                     fontWeight: 700,
-                    fontSize: "0.85rem",
                     cursor: authenticating ? "not-allowed" : "pointer",
-                    opacity: authenticating ? 0.7 : 1,
+                    fontSize: "0.85rem",
                   }}
                 >
-                  {authenticating ? "Verifying..." : "Sign In"}
+                  {authenticating ? "Auth..." : "Sign In"}
                 </button>
               </div>
             </form>
