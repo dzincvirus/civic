@@ -95,10 +95,13 @@ body {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  touch-action: pan-y; /* Allows natural vertical page scrolling */
+  touch-action: pan-y;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
-  z-index: 1; /* Keeps map below header */
+
+  /* CRITICAL FIX FOR SCROLL OVERLAY GLITCH */
+  isolation: isolate; /* Creates a new stacking context that traps internal Leaflet z-indexes */
+  z-index: 0; /* Forces the map wrapper below all relative/sticky page content */
 }
 
 @media (min-width: 900px) {
@@ -115,15 +118,10 @@ body {
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
-}
 
-.card h2,
-.card h3 {
-  margin-top: 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-main);
+  /* Ensures cards render over the map during mobile scrolling */
+  position: relative;
+  z-index: 10;
 }
 
 /* 6. Form Controls & Touch Targets */
