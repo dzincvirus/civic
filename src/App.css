@@ -40,11 +40,12 @@ body {
 /* 2. Map Wrapper Sizing */
 .map-container-wrapper {
   width: 100%;
-  height: 60vh; /* Scalable for mobile screens */
-  min-height: 350px;
+  height: 55vh; /* Gives space for the page underneath to be tapped and scrolled */
+  min-height: 320px;
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
+  touch-action: pan-y; /* Prevents map from locking vertical scrolling when dragging outside controls */
 }
 
 /* 3. App Header */
@@ -71,14 +72,16 @@ body {
 }
 
 /* 4. Main App Grid Layout */
+/* 4. Main App Grid Layout */
 .app-container {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
   padding: 16px;
+  padding-bottom: 80px; /* Crucial: gives safe scrolling area at the bottom of mobile screens */
   box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 

@@ -539,6 +539,9 @@ export default function App() {
                 center={defaultCenter}
                 zoom={13}
                 zoomControl={false}
+                scrollWheelZoom={
+                  false
+                } /* Prevents accidental zooming while scrolling */
                 style={{ height: "100%", width: "100%" }}
               >
                 <TileLayer
