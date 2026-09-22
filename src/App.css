@@ -90,27 +90,24 @@ body {
 /* 4. Touch-Friendly Map Container */
 .map-container-wrapper {
   width: 100%;
-  height: 50vh;
-  min-height: 320px;
+  max-width: 100%;
+  height: 350px; /* Fixed mobile height prevents Leaflet from stretching outside card boundaries */
   position: relative;
   border-radius: var(--radius);
-  overflow: hidden;
-  touch-action: pan-y;
+  overflow: hidden !important; /* Forces Leaflet canvas to stay inside rounded borders */
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
-
-  /* CRITICAL FIX FOR SCROLL OVERLAY GLITCH */
-  isolation: isolate; /* Creates a new stacking context that traps internal Leaflet z-indexes */
-  z-index: 0; /* Forces the map wrapper below all relative/sticky page content */
+  box-sizing: border-box;
+  isolation: isolate;
+  z-index: 1;
 }
 
-@media (min-width: 900px) {
-  .map-container-wrapper {
-    height: 100%;
-    min-height: 550px;
-  }
+/* Ensure Leaflet's internal container respects parent dimensions */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: inherit;
 }
-
 /* 5. Mobile Cards */
 .card {
   background: var(--surface-card);
@@ -118,10 +115,9 @@ body {
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
-
-  /* Ensures cards render over the map during mobile scrolling */
   position: relative;
-  z-index: 10;
+  overflow: hidden; /* Clips any overflowing elements */
+  box-sizing: border-box;
 }
 
 /* 6. Form Controls & Touch Targets */
