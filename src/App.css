@@ -1,17 +1,16 @@
 :root {
-  --bg-main: #f8fafc;
-  --surface-card: #ffffff;
+  --bg-main: #0f172a;
+  --surface-card: #1e293b;
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
-  --radius: 16px; /* Softer, modern rounded corners */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --radius: 16px;
 }
 
-/* 1. Global Reset & Body */
+/* Global Reset */
 html,
 body {
   width: 100%;
@@ -21,8 +20,7 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-overflow-scrolling: touch;
 }
@@ -34,7 +32,7 @@ body {
   flex-direction: column;
 }
 
-/* 2. Compact Mobile Header (Fixed to top so map scrolls under it cleanly) */
+/* Header Pinned to Top */
 .app-header {
   position: fixed;
   top: 0;
@@ -48,28 +46,27 @@ body {
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow-sm);
-  z-index: 9999; /* Higher than Leaflet controls and tile panes */
+  z-index: 99999 !important; /* Force header above Leaflet */
   box-sizing: border-box;
 }
 
 .app-title {
   font-size: 1.15rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
   color: var(--text-main);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* 3. Main App Container Layout */
+/* App Container Layout */
 .app-container {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 12px;
-  padding-top: 68px; /* Offset for fixed 56px header */
-  padding-bottom: 100px; /* Safe thumb-scroll pad at bottom */
+  padding: 16px;
+  padding-top: 72px; /* Clears fixed header */
+  padding-bottom: 100px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -82,33 +79,10 @@ body {
     grid-template-columns: 1fr 380px;
     padding: 24px;
     padding-top: 80px;
-    padding-bottom: 40px;
-    gap: 24px;
   }
 }
 
-/* 4. Touch-Friendly Map Container */
-.map-container-wrapper {
-  width: 100%;
-  max-width: 100%;
-  height: 350px; /* Fixed mobile height prevents Leaflet from stretching outside card boundaries */
-  position: relative;
-  border-radius: var(--radius);
-  overflow: hidden !important; /* Forces Leaflet canvas to stay inside rounded borders */
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
-  box-sizing: border-box;
-  isolation: isolate;
-  z-index: 1;
-}
-
-/* Ensure Leaflet's internal container respects parent dimensions */
-.leaflet-container {
-  width: 100% !important;
-  height: 100% !important;
-  border-radius: inherit;
-}
-/* 5. Mobile Cards */
+/* Card Styling */
 .card {
   background: var(--surface-card);
   border: 1px solid var(--border-color);
@@ -116,11 +90,59 @@ body {
   padding: 16px;
   box-shadow: var(--shadow-sm);
   position: relative;
-  overflow: hidden; /* Clips any overflowing elements */
+  overflow: hidden !important; /* Forces all contents to stay inside card boundaries */
   box-sizing: border-box;
+  z-index: 1;
 }
 
-/* 6. Form Controls & Touch Targets */
+.card h2,
+.card h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* MAP WRAPPER CONTAINMENT FIX */
+.map-container-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 350px !important; /* Strict height prevents tile expansion */
+  position: relative !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden !important; /* Clips Leaflet canvas */
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+  isolation: isolate !important; /* Traps Leaflet z-indexes inside */
+  z-index: 1 !important;
+  transform: translateZ(0); /* Hardware acceleration containment trick */
+}
+
+/* LEAFLET OVERRIDE RULES */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  z-index: 1 !important;
+}
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-pane,
+.leaflet-shadow-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-popup-pane,
+.leaflet-map-pane {
+  z-index: 1 !important; /* Neutralize Leaflet default z-indexes */
+}
+
+.leaflet-control-container {
+  z-index: 2 !important;
+}
+
+/* Form Controls */
 .form-group {
   margin-bottom: 14px;
 }
@@ -132,36 +154,32 @@ body {
   margin-bottom: 6px;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .input-field {
   width: 100%;
-  min-height: 48px; /* Standard touch target height */
+  min-height: 48px;
   padding: 12px 14px;
   border-radius: 10px;
   border: 1.5px solid var(--border-color);
   background: var(--bg-main);
-  font-size: 1rem; /* 16px font size prevents auto-zoom on iOS Safari */
+  font-size: 1rem;
   color: var(--text-main);
   box-sizing: border-box;
   outline: none;
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  appearance: none;
   -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .input-field:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  background: var(--surface-card);
 }
 
-/* 7. Action Button */
+/* Primary Button */
 .btn-primary {
   width: 100%;
-  min-height: 50px; /* Comfortable thumb press */
+  min-height: 50px;
   background: var(--primary);
   color: #ffffff;
   border: none;
@@ -174,16 +192,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  -webkit-tap-highlight-color: transparent;
 }
 
-.btn-primary:active {
-  transform: scale(0.98);
-  background: var(--primary-hover);
-}
-
-/* 8. Status Badges */
+/* Status Badges */
 .badge {
   font-size: 0.75rem;
   font-weight: 700;
@@ -208,13 +219,12 @@ body {
   color: #16a34a;
 }
 
-/* 9. Leaflet Popup Optimizations */
+/* Leaflet Popups */
 .leaflet-popup-content-wrapper {
   background: #0f172a !important;
   color: #f8fafc !important;
   border-radius: 14px !important;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
 }
 
 .leaflet-popup-tip {

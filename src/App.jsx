@@ -1,4 +1,5 @@
 // src/App.jsx
+import "leaflet/dist/leaflet.css";
 import React, { useState, useEffect } from "react";
 import {
   MapContainer,
