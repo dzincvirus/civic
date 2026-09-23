@@ -1,5 +1,5 @@
 // src/App.jsx
-import RecentReports from "./components/RecentReports";
+import RecentReports from "./components/recentreports";
 import "./index.css";
 import React, { useState, useEffect } from "react";
 import {
