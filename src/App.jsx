@@ -1,4 +1,5 @@
 // src/App.jsx
+import RecentReports from "./components/recentreports";
 import "./index.css";
 import React, { useState, useEffect } from "react";
 import {
@@ -683,6 +684,8 @@ export default function App() {
                   )}
                 </MapContainer>
               </div>
+
+              <RecentReports issues={issues} />
 
               {isMobile && selectedCoords && (
                 <button
