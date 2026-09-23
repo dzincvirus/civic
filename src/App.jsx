@@ -13,7 +13,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "./supabaseClient";
 import IssuesList from "./Issueslist";
-
+import About from "./About";
+import Footer from "./Footer";
 // High-DPI SVG Pin Creator for status pins
 const createCustomIcon = (color) => {
   const svg = `
@@ -989,6 +990,8 @@ export default function App() {
           <IssuesList issues={issues} setIssues={setIssues} session={session} />
         </section>
       </main>
+
+      <Footer />
 
       {/* Admin Authentication Modal */}
       {isLoginOpen && (
