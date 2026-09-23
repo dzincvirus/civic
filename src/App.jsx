@@ -179,11 +179,20 @@ export default function App() {
           );
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "issues" },
+        (payload) => {
+          setIssues((prev) =>
+            prev.filter((item) => item.id !== payload.old.id),
+          );
+        },
+      )
       .subscribe();
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      authSubscription.unsubscribe();
+      if (authSubscription) authSubscription.unsubscribe(); // Safe unsubscribe check
       supabase.removeChannel(channel);
     };
   }, []);

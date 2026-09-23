@@ -21,7 +21,8 @@ export default function IssuesList({ issues = [], setIssues, session }) {
 
       if (error) throw error;
 
-      // Update local state so UI updates immediately
+      // Note: Realtime listener in App.jsx handles updating setIssues automatically!
+      // Optional optimistic update fallback:
       if (setIssues) {
         setIssues((prevIssues) =>
           prevIssues.map((item) =>
