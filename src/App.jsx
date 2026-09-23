@@ -1,5 +1,5 @@
 // src/App.jsx
-import RecentReports from "./components/recentreports";
+import RecentReports from "./components/RecentReports";
 import "./index.css";
 import React, { useState, useEffect } from "react";
 import {
@@ -13,7 +13,6 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "./supabaseClient";
-import IssuesList from "./Issueslist";
 import About from "./About";
 import Footer from "./Footer";
 // High-DPI SVG Pin Creator for status pins
@@ -1000,7 +999,7 @@ export default function App() {
 
         {/* Community Feed / Admin Section */}
         <section style={{ marginTop: isMobile ? "24px" : "40px" }}>
-          <IssuesList issues={issues} setIssues={setIssues} session={session} />
+          <RecentReports issues={issues} />
         </section>
       </main>
 
