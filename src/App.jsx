@@ -115,6 +115,7 @@ export default function App() {
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   // Mobile View Switcher: 'map' or 'form'
   const [activeTab, setActiveTab] = useState("map");
@@ -991,7 +992,27 @@ export default function App() {
         </section>
       </main>
 
-      <Footer />
+      <Footer onOpenAbout={() => setIsAboutOpen(true)} />
+
+      {isAboutOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <About onClose={() => setIsAboutOpen(false)} />
+        </div>
+      )}
 
       {/* Admin Authentication Modal */}
       {isLoginOpen && (

@@ -6,39 +6,48 @@ export default function About({ onClose }) {
     <div
       style={{
         maxWidth: "800px",
-        margin: "40px auto",
-        padding: "24px",
+        margin: "0 auto",
+        padding: "28px",
         backgroundColor: "#0f172a",
         borderRadius: "16px",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
         color: "#f1f5f9",
+        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5)",
       }}
     >
-      <button
-        onClick={onClose}
+      <div
         style={{
-          background: "none",
-          border: "none",
-          color: "#3b82f6",
-          fontWeight: 600,
-          cursor: "pointer",
-          fontSize: "0.9rem",
-          padding: 0,
-          marginBottom: "16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
         }}
       >
-        ← Back to Live Map
-      </button>
+        <h1 style={{ fontSize: "1.75rem", margin: 0, color: "#f8fafc" }}>
+          About CivicPulse
+        </h1>
+        <button
+          onClick={onClose}
+          style={{
+            background: "none",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            borderRadius: "8px",
+            color: "#94a3b8",
+            fontWeight: 600,
+            cursor: "pointer",
+            fontSize: "1.1rem",
+            padding: "4px 12px",
+          }}
+        >
+          ✕
+        </button>
+      </div>
 
-      <h1
-        style={{ fontSize: "1.75rem", margin: "0 0 12px 0", color: "#f8fafc" }}
-      >
-        About CivicPulse
-      </h1>
       <p style={{ fontSize: "0.95rem", color: "#94a3b8", lineHeight: "1.6" }}>
-        CivicPulse is a community incident tracker designed to connect citizens
-        with city services to report, track, and resolve non-emergency
-        neighborhood issues.
+        CivicPulse is a crowdsourced civic engagement platform designed to
+        connect community members directly with city services to report, track,
+        and resolve local infrastructure issues like potholes, streetlights, and
+        trash.
       </p>
 
       <div
@@ -54,6 +63,7 @@ export default function About({ onClose }) {
             backgroundColor: "#1e293b",
             padding: "16px",
             borderRadius: "10px",
+            border: "1px solid rgba(255,255,255,0.05)",
           }}
         >
           <h3
@@ -62,7 +72,7 @@ export default function About({ onClose }) {
             📍 1. Pin
           </h3>
           <p style={{ margin: 0, fontSize: "0.825rem", color: "#94a3b8" }}>
-            Select the exact location of the issue on the live interactive map.
+            Select the exact location of the issue on our live interactive map.
           </p>
         </div>
         <div
@@ -70,6 +80,7 @@ export default function About({ onClose }) {
             backgroundColor: "#1e293b",
             padding: "16px",
             borderRadius: "10px",
+            border: "1px solid rgba(255,255,255,0.05)",
           }}
         >
           <h3
@@ -78,7 +89,7 @@ export default function About({ onClose }) {
             📷 2. Report
           </h3>
           <p style={{ margin: 0, fontSize: "0.825rem", color: "#94a3b8" }}>
-            Attach a photo, select a category, and submit the incident report.
+            Attach a photo, choose a category, and submit the incident report.
           </p>
         </div>
         <div
@@ -86,6 +97,7 @@ export default function About({ onClose }) {
             backgroundColor: "#1e293b",
             padding: "16px",
             borderRadius: "10px",
+            border: "1px solid rgba(255,255,255,0.05)",
           }}
         >
           <h3
@@ -94,7 +106,8 @@ export default function About({ onClose }) {
             ✅ 3. Resolve
           </h3>
           <p style={{ margin: 0, fontSize: "0.825rem", color: "#94a3b8" }}>
-            City admins update status markers live as repairs take place.
+            City administrators update status markers live as repairs take
+            place.
           </p>
         </div>
       </div>

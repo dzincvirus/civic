@@ -5,7 +5,7 @@ export default function Footer({ onOpenAbout }) {
   return (
     <footer
       style={{
-        marginTop: "60px",
+        marginTop: "40px",
         padding: "24px 20px",
         backgroundColor: "#0f172a",
         borderTop: "1px solid rgba(255, 255, 255, 0.08)",
@@ -18,8 +18,10 @@ export default function Footer({ onOpenAbout }) {
         style={{
           display: "flex",
           justifyContent: "center",
-          gap: "20px",
+          alignItems: "center",
+          gap: "16px",
           marginBottom: "12px",
+          flexWrap: "wrap",
         }}
       >
         <button
@@ -27,25 +29,23 @@ export default function Footer({ onOpenAbout }) {
           style={{
             background: "none",
             border: "none",
-            color: "#94a3b8",
+            color: "#3b82f6",
             cursor: "pointer",
             fontSize: "0.85rem",
+            fontWeight: 600,
+            padding: 0,
+            textDecoration: "underline",
           }}
         >
-          About Us
+          About CivicPulse
         </button>
         <span>•</span>
-        <a href="#privacy" style={{ color: "#94a3b8", textDecoration: "none" }}>
-          Privacy Policy
-        </a>
+        <span style={{ color: "#64748b" }}>Live Incident Tracker</span>
         <span>•</span>
-        <a href="#terms" style={{ color: "#94a3b8", textDecoration: "none" }}>
-          Terms of Service
-        </a>
+        <span style={{ color: "#64748b" }}>Community Driven</span>
       </div>
-      <p style={{ margin: 0 }}>
-        © {new Date().getFullYear()} CivicPulse Community Incident Tracker. All
-        rights reserved.
+      <p style={{ margin: 0, fontSize: "0.75rem", color: "#475569" }}>
+        © {new Date().getFullYear()} CivicPulse. Empowering local communities.
       </p>
     </footer>
   );
