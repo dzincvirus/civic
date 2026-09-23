@@ -625,7 +625,7 @@ export default function App() {
 
                   {issues.map((issue) => (
                     <Marker
-                      key={issue.id}
+                      key={`${issue.id}-${issue.status}`}
                       position={[issue.latitude, issue.longitude]}
                       icon={createCustomIcon(
                         statusColors[issue.status] || "#ef4444",
