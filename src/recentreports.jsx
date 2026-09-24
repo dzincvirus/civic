@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function RecentReports({ issues = [], handleStatusChange }) {
-  const getStatusBadgeStyle = (status) => {
+  const getBadgeDetails = (status) => {
     const norm = (status || "").toLowerCase();
     if (norm === "resolved" || norm === "fixed") {
       return {
@@ -31,25 +31,30 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
     return (
       <div
         style={{
-          marginTop: "36px",
-          padding: "0 12px",
+          marginTop: "32px",
+          padding: "24px",
           textAlign: "center",
           color: "#94a3b8",
+          backgroundColor: "#0f172a",
+          borderRadius: "12px",
+          border: "1px dashed rgba(255, 255, 255, 0.15)",
         }}
       >
-        No reports submitted yet.
+        No reported incidents found.
       </div>
     );
   }
 
   return (
-    <section style={{ width: "100%", boxSizing: "border-box" }}>
+    <section
+      style={{ width: "100%", marginTop: "32px", boxSizing: "border-box" }}
+    >
       <h3
         style={{
-          fontSize: "1.35rem",
+          fontSize: "1.25rem",
           fontWeight: 700,
           color: "#f8fafc",
-          marginBottom: "24px",
+          marginBottom: "20px",
           textAlign: "center",
         }}
       >
@@ -64,70 +69,71 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
           width: "100%",
         }}
       >
-        {issues.map((issue) => {
-          const badgeStyle = getStatusBadgeStyle(issue.status);
+        {issues.map((issue, idx) => {
+          const badge = getBadgeDetails(issue.status);
+          const reportTitle =
+            issue.title || issue.description || "Incident Report";
+          const reportCategory = issue.category || "General";
+          const reportImg = issue.image_url || issue.image || issue.photo;
+          const lat = issue.latitude
+            ? Number(issue.latitude).toFixed(4)
+            : "N/A";
+          const lng = issue.longitude
+            ? Number(issue.longitude).toFixed(4)
+            : "N/A";
 
           return (
             <div
-              key={issue.id || Math.random()}
+              key={issue.id || idx}
               style={{
                 backgroundColor: "#0f172a",
                 borderRadius: "14px",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                boxSizing: "border-box",
-                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
+                boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
               }}
             >
-              {/* Image */}
+              {/* Image Header */}
               <div
                 style={{
                   width: "100%",
                   height: "180px",
                   backgroundColor: "#1e293b",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   overflow: "hidden",
                 }}
               >
-                {issue.image_url ? (
+                {reportImg ? (
                   <img
-                    src={issue.image_url}
-                    alt={issue.title || "Report Image"}
+                    src={reportImg}
+                    alt={reportTitle}
                     style={{
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      display: "block",
                     }}
                   />
                 ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: "100%",
-                      color: "#64748b",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    📷 No Photo Attached
-                  </div>
+                  <span style={{ color: "#64748b", fontSize: "0.85rem" }}>
+                    📷 No Photo Uploaded
+                  </span>
                 )}
               </div>
 
-              {/* Card Content */}
+              {/* Card Body */}
               <div
                 style={{
                   padding: "16px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "10px",
+                  gap: "12px",
                   flex: 1,
                 }}
               >
-                {/* Category & Status */}
                 <div
                   style={{
                     display: "flex",
@@ -144,7 +150,7 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                       letterSpacing: "0.05em",
                     }}
                   >
-                    {issue.category || "GENERAL"}
+                    {reportCategory}
                   </span>
 
                   {handleStatusChange ? (
@@ -154,9 +160,9 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                         handleStatusChange(issue.id, e.target.value)
                       }
                       style={{
-                        backgroundColor: badgeStyle.bg,
-                        color: badgeStyle.text,
-                        border: `1px solid ${badgeStyle.border}`,
+                        backgroundColor: badge.bg,
+                        color: badge.text,
+                        border: `1px solid ${badge.border}`,
                         borderRadius: "20px",
                         padding: "4px 8px",
                         fontSize: "0.75rem",
@@ -191,17 +197,16 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                         fontWeight: 600,
                         padding: "4px 10px",
                         borderRadius: "20px",
-                        backgroundColor: badgeStyle.bg,
-                        color: badgeStyle.text,
-                        border: `1px solid ${badgeStyle.border}`,
+                        backgroundColor: badge.bg,
+                        color: badge.text,
+                        border: `1px solid ${badge.border}`,
                       }}
                     >
-                      {badgeStyle.label}
+                      {badge.label}
                     </span>
                   )}
                 </div>
 
-                {/* Title */}
                 <h4
                   style={{
                     margin: 0,
@@ -211,21 +216,19 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                     lineHeight: "1.4",
                   }}
                 >
-                  {issue.title || "Untitled Incident"}
+                  {reportTitle}
                 </h4>
 
-                {/* Coordinates */}
                 <div
                   style={{
                     marginTop: "auto",
                     paddingTop: "10px",
-                    borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+                    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
                     fontSize: "0.75rem",
                     color: "#64748b",
                   }}
                 >
-                  📍 Lat: {Number(issue.latitude || 0).toFixed(4)}, Lng:{" "}
-                  {Number(issue.longitude || 0).toFixed(4)}
+                  📍 Lat: {lat}, Lng: {lng}
                 </div>
               </div>
             </div>
