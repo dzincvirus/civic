@@ -1,6 +1,7 @@
+// src/components/recentreports.jsx
 import React, { useState } from "react";
 
-export default function RecentReports({ issues = [] }) {
+export default function RecentReports({ issues = [], handleStatusChange }) {
   const [hoveredIssue, setHoveredIssue] = useState(null);
   const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
 
@@ -11,6 +12,7 @@ export default function RecentReports({ issues = [] }) {
         bg: "rgba(16, 185, 129, 0.2)",
         text: "#34d399",
         border: "#10b981",
+        label: "Resolved",
       };
     }
     if (norm === "in_progress" || norm === "in progress") {
@@ -18,9 +20,15 @@ export default function RecentReports({ issues = [] }) {
         bg: "rgba(245, 158, 11, 0.2)",
         text: "#fbbf24",
         border: "#f59e0b",
+        label: "In Progress",
       };
     }
-    return { bg: "rgba(239, 68, 68, 0.2)", text: "#f87171", border: "#ef4444" };
+    return {
+      bg: "rgba(239, 68, 68, 0.2)",
+      text: "#f87171",
+      border: "#ef4444",
+      label: "Unresolved",
+    };
   };
 
   const handleMouseMove = (e) => {
@@ -28,6 +36,27 @@ export default function RecentReports({ issues = [] }) {
     const y = Math.min(e.clientY + 15, window.innerHeight - 260);
     setPopupPos({ x, y });
   };
+
+  if (!issues || issues.length === 0) {
+    return (
+      <section style={{ marginTop: "36px", padding: "0 12px" }}>
+        <div
+          style={{
+            backgroundColor: "#0f172a",
+            borderRadius: "16px",
+            padding: "32px",
+            textAlign: "center",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            color: "#94a3b8",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: "0.95rem" }}>
+            No reports submitted yet.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section style={{ marginTop: "36px", padding: "0 12px" }}>
@@ -48,7 +77,7 @@ export default function RecentReports({ issues = [] }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
           gap: "20px",
         }}
       >
@@ -89,13 +118,14 @@ export default function RecentReports({ issues = [] }) {
               <div
                 style={{
                   width: "100%",
-                  height: "150px",
+                  height: "160px",
                   backgroundColor: "#0f172a",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   overflow: "hidden",
                   borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+                  position: "relative",
                 }}
               >
                 {issue.image_url ? (
@@ -156,20 +186,60 @@ export default function RecentReports({ issues = [] }) {
                     {issue.category || "General"}
                   </span>
 
-                  <span
-                    style={{
-                      fontSize: "0.725rem",
-                      fontWeight: 600,
-                      padding: "3px 10px",
-                      borderRadius: "20px",
-                      backgroundColor: badgeStyle.bg,
-                      color: badgeStyle.text,
-                      border: `1px solid ${badgeStyle.border}`,
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {(issue.status || "unresolved").replace("_", " ")}
-                  </span>
+                  {/* Admin Status Dropdown vs Public Badge */}
+                  {handleStatusChange ? (
+                    <select
+                      value={issue.status || "unresolved"}
+                      onChange={(e) =>
+                        handleStatusChange(issue.id, e.target.value)
+                      }
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "8px",
+                        fontSize: "0.725rem",
+                        fontWeight: 600,
+                        backgroundColor: badgeStyle.bg,
+                        color: badgeStyle.text,
+                        border: `1px solid ${badgeStyle.border}`,
+                        cursor: "pointer",
+                        outline: "none",
+                      }}
+                    >
+                      <option
+                        value="unresolved"
+                        style={{ background: "#0f172a", color: "#fff" }}
+                      >
+                        Unresolved
+                      </option>
+                      <option
+                        value="in_progress"
+                        style={{ background: "#0f172a", color: "#fff" }}
+                      >
+                        In Progress
+                      </option>
+                      <option
+                        value="resolved"
+                        style={{ background: "#0f172a", color: "#fff" }}
+                      >
+                        Resolved
+                      </option>
+                    </select>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "0.725rem",
+                        fontWeight: 600,
+                        padding: "3px 10px",
+                        borderRadius: "20px",
+                        backgroundColor: badgeStyle.bg,
+                        color: badgeStyle.text,
+                        border: `1px solid ${badgeStyle.border}`,
+                      }}
+                    >
+                      {badgeStyle.label}
+                    </span>
+                  )}
                 </div>
 
                 <h4
