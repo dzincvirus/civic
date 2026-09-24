@@ -26,11 +26,19 @@ export default function IssuesList({ issues = [], handleStatusChange }) {
   const handleMouseMove = (e) => {
     const x = Math.min(e.clientX + 15, window.innerWidth - 320);
     const y = Math.min(e.clientY + 15, window.innerHeight - 260);
-    setPopupPos({ x, y });
+    setPopupPos({ x: Math.max(10, x), y: Math.max(10, y) });
   };
 
   return (
-    <section style={{ marginTop: "36px", padding: "0 12px" }}>
+    <section
+      style={{
+        marginTop: "36px",
+        padding: "0 16px",
+        maxWidth: "1200px",
+        marginLeft: "auto",
+        marginRight: "auto",
+      }}
+    >
       <h3
         style={{
           fontSize: "1.35rem",
@@ -55,6 +63,9 @@ export default function IssuesList({ issues = [], handleStatusChange }) {
         {issues.map((issue) => {
           const badgeStyle = getStatusBadgeStyle(issue.status);
           const isHovered = hoveredIssue?.id === issue.id;
+
+          const lat = Number(issue.latitude ?? 0).toFixed(4);
+          const lng = Number(issue.longitude ?? 0).toFixed(4);
 
           return (
             <div
@@ -101,7 +112,7 @@ export default function IssuesList({ issues = [], handleStatusChange }) {
                 {issue.image_url ? (
                   <img
                     src={issue.image_url}
-                    alt={issue.title}
+                    alt={issue.title || "Report Image"}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -207,7 +218,7 @@ export default function IssuesList({ issues = [], handleStatusChange }) {
                     lineHeight: "1.35",
                   }}
                 >
-                  {issue.title}
+                  {issue.title || "Untitled Issue"}
                 </h4>
 
                 <div
@@ -224,8 +235,7 @@ export default function IssuesList({ issues = [], handleStatusChange }) {
                 >
                   <span>📍</span>
                   <span>
-                    Lat: {Number(issue.latitude).toFixed(4)}, Lng:{" "}
-                    {Number(issue.longitude).toFixed(4)}
+                    Lat: {lat}, Lng: {lng}
                   </span>
                 </div>
               </div>
@@ -284,7 +294,7 @@ export default function IssuesList({ issues = [], handleStatusChange }) {
               fontWeight: 600,
             }}
           >
-            {hoveredIssue.title}
+            {hoveredIssue.title || "Untitled Issue"}
           </h5>
 
           {hoveredIssue.description && (
