@@ -1,9 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 
 export default function RecentReports({ issues = [], handleStatusChange }) {
-  const [hoveredIssue, setHoveredIssue] = useState(null);
-  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
-
   const getStatusBadgeStyle = (status) => {
     const norm = (status || "").toLowerCase();
     if (norm === "resolved" || norm === "fixed") {
@@ -30,12 +27,6 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
     };
   };
 
-  const handleMouseMove = (e) => {
-    const x = Math.min(e.clientX + 15, window.innerWidth - 320);
-    const y = Math.min(e.clientY + 15, window.innerHeight - 260);
-    setPopupPos({ x, y });
-  };
-
   if (!issues || issues.length === 0) {
     return (
       <div
@@ -52,15 +43,7 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
   }
 
   return (
-    <section
-      style={{
-        marginTop: "36px",
-        padding: "0 12px",
-        width: "100%",
-        boxSizing: "border-box",
-        textAlign: "left",
-      }}
-    >
+    <section style={{ width: "100%", boxSizing: "border-box" }}>
       <h3
         style={{
           fontSize: "1.35rem",
@@ -86,38 +69,31 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
 
           return (
             <div
-              key={`${issue.id}-${issue.status}`}
-              onMouseEnter={(e) => {
-                setHoveredIssue(issue);
-                handleMouseMove(e);
-              }}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() => setHoveredIssue(null)}
+              key={issue.id || Math.random()}
               style={{
-                backgroundColor: "#1e293b",
+                backgroundColor: "#0f172a",
                 borderRadius: "14px",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
                 boxSizing: "border-box",
-                position: "relative",
+                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
               }}
             >
-              {/* Image Container */}
+              {/* Image */}
               <div
                 style={{
                   width: "100%",
                   height: "180px",
-                  backgroundColor: "#0f172a",
+                  backgroundColor: "#1e293b",
                   overflow: "hidden",
-                  display: "block",
                 }}
               >
                 {issue.image_url ? (
                   <img
                     src={issue.image_url}
-                    alt={issue.title}
+                    alt={issue.title || "Report Image"}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -133,31 +109,30 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                       justifyContent: "center",
                       height: "100%",
                       color: "#64748b",
-                      fontSize: "0.8rem",
+                      fontSize: "0.85rem",
                     }}
                   >
-                    No Photo Uploaded
+                    📷 No Photo Attached
                   </div>
                 )}
               </div>
 
-              {/* Card Content Body */}
+              {/* Card Content */}
               <div
                 style={{
                   padding: "16px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "12px",
-                  backgroundColor: "#1e293b",
+                  gap: "10px",
+                  flex: 1,
                 }}
               >
-                {/* Header Row */}
+                {/* Category & Status */}
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    width: "100%",
                   }}
                 >
                   <span
@@ -166,9 +141,10 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                       fontWeight: 700,
                       color: "#94a3b8",
                       textTransform: "uppercase",
+                      letterSpacing: "0.05em",
                     }}
                   >
-                    {issue.category || "General"}
+                    {issue.category || "GENERAL"}
                   </span>
 
                   {handleStatusChange ? (
@@ -177,33 +153,33 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                       onChange={(e) =>
                         handleStatusChange(issue.id, e.target.value)
                       }
-                      onClick={(e) => e.stopPropagation()}
                       style={{
-                        padding: "4px 8px",
-                        borderRadius: "8px",
-                        fontSize: "0.75rem",
-                        fontWeight: 600,
                         backgroundColor: badgeStyle.bg,
                         color: badgeStyle.text,
                         border: `1px solid ${badgeStyle.border}`,
+                        borderRadius: "20px",
+                        padding: "4px 8px",
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
                         outline: "none",
                       }}
                     >
                       <option
                         value="unresolved"
-                        style={{ background: "#0f172a", color: "#fff" }}
+                        style={{ background: "#0f172a", color: "#f87171" }}
                       >
                         Unresolved
                       </option>
                       <option
                         value="in_progress"
-                        style={{ background: "#0f172a", color: "#fff" }}
+                        style={{ background: "#0f172a", color: "#fbbf24" }}
                       >
                         In Progress
                       </option>
                       <option
                         value="resolved"
-                        style={{ background: "#0f172a", color: "#fff" }}
+                        style={{ background: "#0f172a", color: "#34d399" }}
                       >
                         Resolved
                       </option>
@@ -232,24 +208,24 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
                     fontSize: "1rem",
                     fontWeight: 600,
                     color: "#f8fafc",
-                    textAlign: "left",
+                    lineHeight: "1.4",
                   }}
                 >
-                  {issue.title}
+                  {issue.title || "Untitled Incident"}
                 </h4>
 
-                {/* Location Footer */}
+                {/* Coordinates */}
                 <div
                   style={{
+                    marginTop: "auto",
                     paddingTop: "10px",
-                    borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+                    borderTop: "1px solid rgba(255, 255, 255, 0.06)",
                     fontSize: "0.75rem",
                     color: "#64748b",
-                    textAlign: "left",
                   }}
                 >
-                  📍 Lat: {Number(issue.latitude).toFixed(4)}, Lng:{" "}
-                  {Number(issue.longitude).toFixed(4)}
+                  📍 Lat: {Number(issue.latitude || 0).toFixed(4)}, Lng:{" "}
+                  {Number(issue.longitude || 0).toFixed(4)}
                 </div>
               </div>
             </div>
