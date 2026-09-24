@@ -15,6 +15,7 @@ import "leaflet/dist/leaflet.css";
 import { supabase } from "./supabaseClient";
 import About from "./About";
 import Footer from "./Footer";
+
 // High-DPI SVG Pin Creator for status pins
 const createCustomIcon = (color) => {
   const svg = `
@@ -192,7 +193,7 @@ export default function App() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      if (authSubscription) authSubscription.unsubscribe(); // Safe unsubscribe check
+      if (authSubscription) authSubscription.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, []);
@@ -242,6 +243,27 @@ export default function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  // Status Change Handler for Admins
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const { error } = await supabase
+        .from("issues")
+        .update({ status: newStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setIssues((prev) =>
+        prev.map((issue) =>
+          issue.id === id ? { ...issue, status: newStatus } : issue,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update status:", err.message);
+      alert(`Could not update status: ${err.message}`);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -684,8 +706,6 @@ export default function App() {
                 </MapContainer>
               </div>
 
-              <RecentReports issues={issues} />
-
               {isMobile && selectedCoords && (
                 <button
                   type="button"
@@ -997,9 +1017,12 @@ export default function App() {
           )}
         </div>
 
-        {/* Community Feed / Admin Section */}
+        {/* Community Feed / Admin Section (Single Correct Instance) */}
         <section style={{ marginTop: isMobile ? "24px" : "40px" }}>
-          <RecentReports issues={issues} />
+          <RecentReports
+            issues={issues}
+            handleStatusChange={isAdmin ? handleStatusChange : null}
+          />
         </section>
       </main>
 
