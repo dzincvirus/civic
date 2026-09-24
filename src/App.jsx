@@ -1,5 +1,6 @@
 // src/App.jsx
 import RecentReports from "./components/recentreports";
+import CameraCapture from "./components/CameraCapture";
 import "./index.css";
 import React, { useState, useEffect } from "react";
 import {
@@ -118,6 +119,9 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
 
+  // Camera state
+  const [showCamera, setShowCamera] = useState(false);
+
   // Mobile View Switcher: 'map' or 'form'
   const [activeTab, setActiveTab] = useState("map");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -204,6 +208,12 @@ export default function App() {
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
     }
+  };
+
+  const handleCameraCapture = (capturedFile, capturedUrl) => {
+    setFile(capturedFile);
+    setPreviewUrl(capturedUrl);
+    setShowCamera(false);
   };
 
   const handleRemoveFile = () => {
@@ -887,51 +897,77 @@ export default function App() {
                   </label>
 
                   {!previewUrl ? (
-                    <label
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "18px 14px",
-                        borderRadius: "10px",
-                        backgroundColor: "#1e293b",
-                        border: "2px dashed rgba(255, 255, 255, 0.15)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div
+                    isMobile ? (
+                      /* Mobile View: Live Camera Option */
+                      <button
+                        type="button"
+                        onClick={() => setShowCamera(true)}
                         style={{
-                          width: "38px",
-                          height: "38px",
-                          borderRadius: "50%",
-                          backgroundColor: "rgba(59, 130, 246, 0.15)",
+                          width: "100%",
+                          padding: "16px",
+                          borderRadius: "10px",
+                          backgroundColor: "#1e293b",
+                          border: "2px dashed rgba(59, 130, 246, 0.4)",
                           color: "#60a5fa",
+                          fontSize: "0.9rem",
+                          fontWeight: 700,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          marginBottom: "6px",
-                          fontSize: "1.1rem",
+                          gap: "8px",
+                          cursor: "pointer",
                         }}
                       >
-                        📷
-                      </div>
-                      <span
+                        📸 Take Live Photo
+                      </button>
+                    ) : (
+                      /* Desktop View: File Upload */
+                      <label
                         style={{
-                          fontSize: "0.85rem",
-                          fontWeight: 600,
-                          color: "#e2e8f0",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "18px 14px",
+                          borderRadius: "10px",
+                          backgroundColor: "#1e293b",
+                          border: "2px dashed rgba(255, 255, 255, 0.15)",
+                          cursor: "pointer",
                         }}
                       >
-                        Upload Photo Evidence
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        style={{ display: "none" }}
-                      />
-                    </label>
+                        <div
+                          style={{
+                            width: "38px",
+                            height: "38px",
+                            borderRadius: "50%",
+                            backgroundColor: "rgba(59, 130, 246, 0.15)",
+                            color: "#60a5fa",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: "6px",
+                            fontSize: "1.1rem",
+                          }}
+                        >
+                          📁
+                        </div>
+                        <span
+                          style={{
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                            color: "#e2e8f0",
+                          }}
+                        >
+                          Upload Photo Evidence
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          style={{ display: "none" }}
+                        />
+                      </label>
+                    )
                   ) : (
                     <div
                       style={{
@@ -968,7 +1004,7 @@ export default function App() {
                             textOverflow: "ellipsis",
                           }}
                         >
-                          {file?.name}
+                          {file?.name || "Captured Photo"}
                         </p>
                       </div>
                       <button
@@ -1017,7 +1053,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Community Feed / Admin Section (Single Correct Instance) */}
+        {/* Community Feed / Admin Section */}
         <section style={{ marginTop: isMobile ? "24px" : "40px" }}>
           <RecentReports
             issues={issues}
@@ -1025,6 +1061,14 @@ export default function App() {
           />
         </section>
       </main>
+
+      {/* Render Camera Modal Overlay for Mobile Users */}
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
 
       <Footer onOpenAbout={() => setIsAboutOpen(true)} />
 
