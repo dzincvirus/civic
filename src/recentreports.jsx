@@ -58,6 +58,7 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
         padding: "0 12px",
         width: "100%",
         boxSizing: "border-box",
+        textAlign: "left",
       }}
     >
       <h3
@@ -82,7 +83,6 @@ export default function RecentReports({ issues = [], handleStatusChange }) {
       >
         {issues.map((issue) => {
           const badgeStyle = getStatusBadgeStyle(issue.status);
-          const isHovered = hoveredIssue?.id === issue.id;
 
           return (
             <div
